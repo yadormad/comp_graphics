@@ -21,11 +21,9 @@ ProjMatrix::ProjMatrix(int img_size,
 
 	obj_matr = new double*[3];
 	cam_matr = new double*[3];
-	view_matr = new double*[3];
 	for (int i = 0; i < 3; i++)
 	{
 		obj_matr[i] = new double[4];
-		view_matr[i] = new double[3];
 		obj_ang[i] = obj_ang[i] * M_PI / 180;
 		for (int j = 0; j < 3; j++)
 		{
@@ -34,7 +32,6 @@ ProjMatrix::ProjMatrix(int img_size,
 			rz[i][j] = 0;
 			tmp[i][j] = 0;
 			obj_matr[i][j] = 0;
-			view_matr[i][j] = 0;
 		}
 		obj_matr[i][3] = obj_off[i];
 	}
@@ -45,6 +42,17 @@ ProjMatrix::ProjMatrix(int img_size,
 		for (int j = 0; j < 4; j++)
 		{
 			cam_matr[i][j] = 0;
+		}
+	}
+
+
+	view_matr = new double*[4];
+	for (int i = 0; i < 4; i++)
+	{
+		view_matr[i] = new double[3];
+		for (int j = 0; j < 4; j++)
+		{
+			view_matr[i][j] = 0;
 		}
 	}
 
@@ -97,7 +105,48 @@ ProjMatrix::ProjMatrix(int img_size,
 	x.normalize();
 	Point2D3D y = z ^ x;
 	y.normalize();
+	double** minv = new double*[4];
+	double** tr = new double*[4];
+	for (int i = 0; i < 4; i++)
+	{
+		minv[i] = new double[4];
+		tr[i] = new double[4];
+		for (int j = 0; j < 4; j++) {
+			if(i == j) 
+			{
+				minv[i][j] = 1;
+				tr[i][j] = 1;
+			} 
+			else
+			{
+				minv[i][j] = 0;
+				tr[i][j] = 0;
+			}
+		}
+	}
+	minv[0][0] = x.x;
+	minv[0][1] = x.y;
+	minv[0][2] = x.z;
+	minv[1][0] = y.x;
+	minv[1][1] = y.y;
+	minv[1][2] = y.z;
+	minv[2][0] = z.x;
+	minv[2][1] = z.y;
+	minv[2][2] = z.z;
+	tr[0][3] = -centr.x;
+	tr[1][3] = -centr.y;
+	tr[2][3] = -centr.z;
 
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				view_matr[i][j] += minv[i][k] * tr[k][j];
+			}
+		}
+	}
 }
 void ProjMatrix::transform(Triangle& triangle)
 {
@@ -128,7 +177,32 @@ void ProjMatrix::transform(Triangle& triangle)
 }
 void ProjMatrix::proj(Triangle& triangle, Point2D3D* coords)
 {
-	double x, y, z;
+	double x, y, z, n;
+
+	x = view_matr[0][0] * triangle.a.x + view_matr[0][1] * triangle.a.y + view_matr[0][2] * triangle.a.z + view_matr[0][3];
+	y = view_matr[1][0] * triangle.a.x + view_matr[1][1] * triangle.a.y + view_matr[1][2] * triangle.a.z + view_matr[1][3];
+	z = view_matr[2][0] * triangle.a.x + view_matr[2][1] * triangle.a.y + view_matr[2][2] * triangle.a.z + view_matr[2][3];
+	n = view_matr[3][0] * triangle.a.x + view_matr[3][1] * triangle.a.y + view_matr[3][2] * triangle.a.z + view_matr[3][3];
+	triangle.a.x = x/n;
+	triangle.a.y = y/n;
+	triangle.a.z = z/n;
+
+	x = view_matr[0][0] * triangle.b.x + view_matr[0][1] * triangle.b.y + view_matr[0][2] * triangle.b.z + view_matr[0][3];
+	y = view_matr[1][0] * triangle.b.x + view_matr[1][1] * triangle.b.y + view_matr[1][2] * triangle.b.z + view_matr[1][3];
+	z = view_matr[2][0] * triangle.b.x + view_matr[2][1] * triangle.b.y + view_matr[2][2] * triangle.b.z + view_matr[2][3];
+	n = view_matr[3][0] * triangle.b.x + view_matr[3][1] * triangle.b.y + view_matr[3][2] * triangle.b.z + view_matr[3][3];
+	triangle.b.x = x/n;
+	triangle.b.y = y/n;
+	triangle.b.z = z/n;
+
+	x = view_matr[0][0] * triangle.c.x + view_matr[0][1] * triangle.c.y + view_matr[0][2] * triangle.c.z + view_matr[0][3];
+	y = view_matr[1][0] * triangle.c.x + view_matr[1][1] * triangle.c.y + view_matr[1][2] * triangle.c.z + view_matr[1][3];
+	z = view_matr[2][0] * triangle.c.x + view_matr[2][1] * triangle.c.y + view_matr[2][2] * triangle.c.z + view_matr[2][3];
+	n = view_matr[3][0] * triangle.c.x + view_matr[3][1] * triangle.c.y + view_matr[3][2] * triangle.c.z + view_matr[3][3];
+	triangle.c.x = x/n;
+	triangle.c.y = y/n;
+	triangle.c.z = z/n;
+
 	x = cam_matr[0][0] * triangle.a.x + cam_matr[0][1] * triangle.a.y + cam_matr[0][2] * triangle.a.z + cam_matr[0][3];
 	y = cam_matr[1][0] * triangle.a.x + cam_matr[1][1] * triangle.a.y + cam_matr[1][2] * triangle.a.z + cam_matr[1][3];
 	z = cam_matr[2][0] * triangle.a.x + cam_matr[2][1] * triangle.a.y + cam_matr[2][2] * triangle.a.z + cam_matr[2][3];

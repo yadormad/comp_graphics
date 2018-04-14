@@ -120,13 +120,6 @@ double Matr::det()
 			tmp[i][j] = matrix[i][j];
 		}
 	}
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++) {
-			cout << tmp[i][j] << '\t';
-		}
-		cout << '\n';
-	}
 
 	for (int k = 0; k < 3; k++)
 	{
@@ -173,24 +166,7 @@ Matr Matr::trans()
 
 double Matr::getIJMinor(int i, int j)
 {
-	double f[3][3];
-	int ti = 0;
-	for (int si = 0; si < 3; si++)
-	{
-		int tj = 0;
-		if (si == i) ti++;
-		for (int sj = 0; sj < 3; sj++)
-		{
-			if (sj == j) tj++;
-			f[si][sj] = this->matrix[ti][tj];
-			tj++;
-		}
-		ti++;
-	}
-	double res = f[0][0] * f[1][1] * f[2][2] + f[0][1] * f[1][2] * f[2][0] + f[1][0] * f[2][1] * f[0][2] - f[0][2] * f[1][1] * f[2][0] - f[0][0] * f[1][2] * f[2][1] - f[1][0] * f[0][1] * f[2][2];
-	res *= pow(-1.0, i + j);
-	return res;
-	/*Matr min;
+	Matr min;
 	for (int m = 0; m < 4; m++)
 	{
 		for (int n = 0; n < 4; n++)
@@ -202,7 +178,7 @@ double Matr::getIJMinor(int i, int j)
 		}
 	}
 	double res = min.det()*pow(-1.0, i + j);
-	return res;*/
+	return res;
 }
 
 Matr Matr::minor()
@@ -221,9 +197,47 @@ Matr Matr::minor()
 
 Matr Matr::inv()
 {
-	Matr inv;;
-	double det = 1.0 / this->det();
-	inv = det*this->minor();
+	Matr inv;
+	Matr source = this->trans();
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = k + 1; i < 4; i++)
+		{
+			if (source.matrix[i][k] != 0)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					source.matrix[i][j] -= source.matrix[k][j] * source.matrix[i][k] / source.matrix[k][k];
+					inv.matrix[i][j] -= source.matrix[k][j] * source.matrix[i][k] / source.matrix[k][k];
+				}
+			}
+		}
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			source.matrix[i][j] /= source.matrix[i][i];
+			inv.matrix[i][j] /= source.matrix[i][i];
+		}
+	}
+	source = source.trans();
+	inv = inv.trans();
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = k + 1; i < 4; i++)
+		{
+			if (source.matrix[i][k] != 0)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					source.matrix[i][j] -= source.matrix[k][j] * source.matrix[i][k] / source.matrix[k][k];
+					inv.matrix[i][j] -= source.matrix[k][j] * source.matrix[i][k] / source.matrix[k][k];
+				}
+			}
+		}
+	}
+	inv = inv.trans();
 	return inv;
 }
 

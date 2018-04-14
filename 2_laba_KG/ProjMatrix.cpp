@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "ProjMatrix.h"
+#include <iostream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+using namespace std;
 
 ProjMatrix::ProjMatrix(int img_size,
 	int z_size,
@@ -28,10 +30,9 @@ ProjMatrix::ProjMatrix(int img_size,
 	model.shift(obj_off);
 	projMatr = cam ^ view ^ model;
 
-	/*projMatr = (rx^ry) ^ rz;
-	projMatr.shift(obj_off);
-	projMatr = (projMatr ^ view) ^ cam;*/
-	invMatr = projMatr.trans().inv();
+	invMatr = projMatr.inv();
+	Matr f;
+	f = projMatr ^ invMatr;
 }
 Triangle ProjMatrix::transform(Triangle triangle)
 {

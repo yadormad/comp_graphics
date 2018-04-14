@@ -61,9 +61,6 @@ Triangle Triangle::transform(Matr matr, Matr inv)
 	resTriangle.a = matr ^ a;
 	resTriangle.b = matr ^ b;
 	resTriangle.c = matr ^ c;
-	an.normalize();
-	bn.normalize();
-	cn.normalize();
 	resTriangle.an = inv^an;	
 	resTriangle.bn = inv^bn;
 	resTriangle.cn = inv^cn;

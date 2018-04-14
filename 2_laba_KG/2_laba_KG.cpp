@@ -13,7 +13,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-using namespace std;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -64,7 +63,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	TGAImage image(width, height, TGAImage::RGB);
 	list<Triangle> ::iterator it;
-	Point2D3D local_coor[3];
 	Point2D3D light(0, 0, 1);
 	double **z_buffer = new double*[width];
 	for (int i = 0; i < width; i++)
@@ -76,15 +74,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
+	Point2D3D n;
 
 	for (it = pars.triangles.begin(); it != pars.triangles.end(); it++) {
-		
-		p_matrix.transform(*it);
-		p_matrix.proj(*it, local_coor);
+		Triangle local_triangle;
+		local_triangle = p_matrix.transform(*it);
 		//local_coor[0] = Point2D3D(((*it).a.x + 1.)*width / 2., ((*it).a.y + 1.)*height / 2., ((*it).a.z + 1.)*height / 2.);
 		//local_coor[1] = Point2D3D(((*it).b.x + 1.)*width / 2., ((*it).b.y + 1.)*height / 2., ((*it).b.z + 1.)*height / 2.);
 		//local_coor[2] = Point2D3D(((*it).c.x + 1.)*width / 2., ((*it).c.y + 1.)*height / 2., ((*it).c.z + 1.)*height / 2.);
-		if (local_coor[0].y > local_coor[2].y) {
+		/*if (local_coor[0].y > local_coor[2].y) {
 			swap(local_coor[0], local_coor[2]);
 		}
 		if (local_coor[0].y > local_coor[1].y) {
@@ -92,43 +90,27 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		if (local_coor[1].y > local_coor[2].y) {
 			swap(local_coor[0], local_coor[2]);
-		}
+		}*/
 		int minX = INFINITY;
 		int minY = INFINITY;
 		int maxX = -INFINITY;
 		int maxY = -INFINITY;
-		for (int i = 0; i < 3; i++) 
+		local_triangle.getRect(minX, minY, maxX, maxY);
+		Barycentric bar(local_triangle);
+		for (int j = minY; j <= maxY; j++)
 		{
-			if (local_coor[i].x < minX) {
-				minX = local_coor[i].x;
-			}
-			if (local_coor[i].x > maxX) {
-				maxX = local_coor[i].x;
-			}
-			if (local_coor[i].y < minY) {
-				minY = local_coor[i].y;
-			}
-			if (local_coor[i].y > maxY) {
-				maxY = local_coor[i].y;
-			}
-		}
-		Triangle local_triangle(local_coor[0], local_coor[1], local_coor[2]);
-		Point2D3D n = ((*it).b - (*it).a)^((*it).c - (*it).a);
-		n.normalize();
-		double intensivity = n * light;
-		if (intensivity > 0) {
-			TGAColor color = TGAColor(intensivity * 255, intensivity * 255, intensivity * 255, 255);
-			Barycentric bar(local_triangle);
-			for (int j = minY; j <= maxY; j++)
+			for (int i = minX; i <= maxX; i++)
 			{
-				for (int i = minX; i <= maxX; i++)
+				if (!(i >= width || i < 0 || j >= height || j < 0))
 				{
-					if (!(i > width || i < 0 || j > height || j < 0))
+					double _z = z_buffer[i][j];
+					if (bar.belongs(i, j, _z))
 					{
-						double _z = z_buffer[i][j];
-						if (bar.belongs(i, j, _z))
-						{
-							z_buffer[i][j] = _z;
+						n = bar.getNorm(i, j);
+						double inten = n * light;
+						z_buffer[i][j] = _z;
+						if (inten > 0) {
+							TGAColor color = TGAColor(inten*255, inten * 255, inten * 255, 255);
 							image.set(i, j, color);
 						}
 					}
@@ -137,8 +119,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 	image.flip_vertically();
-	image.write_tga_file("output.tga");
 	cin.get();
+	image.write_tga_file("output.tga");
 	return 0;
 }
 

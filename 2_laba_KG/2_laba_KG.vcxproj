@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Barycentric.h" />
+    <ClInclude Include="Matr.h" />
     <ClInclude Include="ObjParser.h" />
     <ClInclude Include="Point2D3D.h" />
     <ClInclude Include="ProjMatrix.h" />
@@ -89,6 +90,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2_laba_KG.cpp" />
+    <ClCompile Include="Barycentric.cpp" />
+    <ClCompile Include="Matr.cpp" />
+    <ClCompile Include="ObjParser.cpp" />
     <ClCompile Include="Point2D3D.cpp" />
     <ClCompile Include="ProjMatrix.cpp" />
     <ClCompile Include="stdafx.cpp">

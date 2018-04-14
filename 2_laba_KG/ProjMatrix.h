@@ -1,11 +1,10 @@
 #pragma once
 #include "Triangle.h"
-ref class ProjMatrix
+class ProjMatrix
 {
 private:
-	double **obj_matr;
-	double **cam_matr;
-	double **view_matr;
+	Matr projMatr;
+	Matr invMatr;
 public:
 	ProjMatrix(int img_size,
 		int z_size,
@@ -13,8 +12,7 @@ public:
 		double *obj_off,
 		Point2D3D eye,
 		Point2D3D centr);
-	void transform(Triangle& triangle);
-	void proj(Triangle& triangle, Point2D3D *coords);
+	Triangle transform(Triangle triangle);
 };
 
 
